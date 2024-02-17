@@ -1,9 +1,14 @@
 # Instalar el rol de IIS
 Add-WindowsFeature Web-Server
 
-# Cambiar el puerto del sitio web predeterminado a 8081
-Import-Module WebAdministration
-Set-ItemProperty 'IIS:\Sites\Default Web Site' -Name bindings -Value @{protocol="http";bindingInformation="*:8081:"}
-
-# Agregar el nombre del equipo al archivo Default.htm
+# Modificar el archivo Default.htm
 Add-Content -Path "C:\inetpub\wwwroot\Default.htm" -Value $env:computername
+
+# Eliminar el enlace existente que escucha en el puerto 80
+Remove-WebBinding -Name "Default Web Site" -Protocol "http" -Port 80
+
+# Crear un nuevo enlace para que el sitio web predeterminado escuche en el puerto 8081
+New-WebBinding -Name "Default Web Site" -IPAddress "*" -Port 8081 -Protocol "http"
+
+# Habilitar el puerto 8081 en el Firewall de Windows
+New-NetFirewallRule -DisplayName "Allow TCP Port 8081" -Direction Inbound -Protocol TCP -LocalPort 8081 -Action Allow
